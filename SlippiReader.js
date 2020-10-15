@@ -1,49 +1,40 @@
 'use strict';
-const { SlippiGame, moves } = require('slp-parser-js');
+const { SlippiGame, moves } = require('@slippi/slippi-js');
 const fs = require("fs");
 
 // games directory to loop over
-const gamesDir = "C:/Users/User/Documents/Slippi/";
+const gamesDir = "/Applications/Slippi/";
 
 const files = fs.readdirSync(gamesDir);
 
-// convert files to slippi game objects
-const games = files.map((e) => new SlippiGame(gamesDir + e));
-
 let counter = 1;
-// console.log(Object.getOwnPropertyNames(games[0].getMetadata()));
-var winsCount = 0;
-const playerName = "Slick Revolver";
-games.forEach(game => {
-    if (JSON.stringify(game.getMetadata().players["0"].names) != JSON.stringify({})) {
+let winsCount = 0;
+const playerName = "npc";
+
+files.forEach(file => {
+    const game = new SlippiGame(gamesDir+file);
+        const metadata = game.getMetadata();
+
+    if (metadata.players["0"].names) {
         counter++;
-        var playerOneName = game.getMetadata().players["0"].names.netplay
-        var playerTwoName = game.getMetadata().players["1"].names.netplay
-        if (playerName == playerOneName && game.getStats().overall[0].killCount > game.getStats().overall[1].killCount) {
-            winsCount++;
-        } else if (playerName == playerTwoName && game.getStats().overall[0].killCount < game.getStats().overall[1].killCount) {
+
+        const playerOneName = metadata.players["0"].names.netplay
+        const playerTwoName = metadata.players["1"].names.netplay
+
+        const getStats = game.getStats()
+        const playerOneStocksTaken = getStats.overall[0].killCount;
+        const playerTwoStocksTaken = getStats.overall[1].killCount;
+        
+        if (playerName == playerOneName && playerOneStocksTaken > playerTwoStocksTaken) {
             winsCount++;
         }
-        console.log("wins: " + winsCount);
-        console.log("games:" + counter);
-        console.log(((winsCount / counter) * 100) + "%");
-        console.log();
+        if (playerName == playerTwoName && playerTwoStocksTaken > playerOneStocksTaken) {
+            winsCount++;
+        }
     }
 });
 
-//     console.log("Game: " + counter++);
-//     const combos_that_killed = game.getStats().combos.filter(combo => combo.didKill);
-//    if (combos_that_killed) {
-//         combos_that_killed.every(combo => {
-//             if (combo.playerIndex == 1) {
-//                 console.log("-You:");
-//             } else {
-//                 console.log("-Opponent:");
-//             }
-//             combo.moves.forEach(move => {
-//                 console.log("--" + moves.getMoveName(move.moveId));
-//             });
-//             console.log();
-//         });
-//     }
-//     console.log();
+
+        console.log("wins: " + winsCount);
+        console.log("games:" + counter);
+        console.log(((winsCount / counter) * 100) + "%");
