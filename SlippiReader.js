@@ -2,39 +2,47 @@
 const { SlippiGame, moves } = require('@slippi/slippi-js');
 const fs = require("fs");
 
-// games directory to loop over
-const gamesDir = "/Applications/Slippi/";
+//games directory to loop over
+const gamesDir = "C:\\Users\\User\\Documents\\Slippi\\";
 
 const files = fs.readdirSync(gamesDir);
 
-let counter = 1;
-let winsCount = 0;
-const playerName = "npc";
+let validGames = 0;
+let wins = 0;
+const playerName = "Slick Revolver";
 
-files.forEach(file => {
-    const game = new SlippiGame(gamesDir+file);
-        const metadata = game.getMetadata();
+const games = files.map(file => new SlippiGame(gamesDir + file));
 
-    if (metadata.players["0"].names) {
-        counter++;
+games.forEach(game => {
+    const metadata = game.getMetadata();
+    if (metadata) {
+        const nameObj = metadata.players["0"].names;
 
-        const playerOneName = metadata.players["0"].names.netplay
-        const playerTwoName = metadata.players["1"].names.netplay
+        //if name object exists and isn't empty
+        if (nameObj && Object.keys(nameObj).length > 0) {
+            validGames++;
 
-        const getStats = game.getStats()
-        const playerOneStocksTaken = getStats.overall[0].killCount;
-        const playerTwoStocksTaken = getStats.overall[1].killCount;
-        
-        if (playerName == playerOneName && playerOneStocksTaken > playerTwoStocksTaken) {
-            winsCount++;
-        }
-        if (playerName == playerTwoName && playerTwoStocksTaken > playerOneStocksTaken) {
-            winsCount++;
+            const playerOneName = metadata.players["0"].names.netplay
+            const playerTwoName = metadata.players["1"].names.netplay
+
+            const stocksArr = game.getStats().stocks;
+
+            const lastStock = stocksArr.find(stock => stock.endPercent == null)
+
+            if (lastStock) {
+                const winnerIndex = lastStock.playerIndex;
+                const name = metadata.players[winnerIndex].names;
+
+                if (name && name.netplay == playerName) {
+                    wins++;
+                }
+            }
+        console.log("wins: " + wins);
+        console.log("games:" + validGames);
+        console.log(((wins/validGames)*100).toFixed(2) + "%", {wins, validGames});
         }
     }
 });
-
-
-        console.log("wins: " + winsCount);
-        console.log("games:" + counter);
-        console.log(((winsCount / counter) * 100) + "%");
+console.log("wins: " + wins);
+console.log("games:" + validGames);
+console.log(((wins/validGames)*100).toFixed(2) + "%", {wins, validGames});
